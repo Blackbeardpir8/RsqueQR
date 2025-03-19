@@ -1,6 +1,7 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-class User(models.Model):
+class User(AbstractUser):  
     GENDER_CHOICES = [
         ('Male', 'Male'),
         ('Female', 'Female'),
@@ -60,6 +61,21 @@ class User(models.Model):
     blood_type = models.CharField(max_length=5, choices=BLOOD_TYPE_CHOICES, blank=True, null=True)
     primary_doctor_name = models.CharField(max_length=100, blank=True, null=True)
     primary_doctor_contact = models.CharField(max_length=15, blank=True, null=True)
+
+    # Fix group & permissions conflict
+    groups = models.ManyToManyField(
+        "auth.Group",
+        related_name="custom_user_groups",
+        blank=True,
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        related_name="custom_user_permissions",
+        blank=True,
+    )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
 
     def __str__(self):
         return f"{self.first_name} {self.middle_name or ''} {self.last_name} - {self.phone_number}"

@@ -3,19 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RescueQR</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>{% block title %}RescueQR{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="user_form.html">Add User</a>
-    </nav>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'user_create' %}">Create User</a></li>
+                <li><a href="{% url 'register' %}">Register</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'get-all-users' %}">Users</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
 
-    <div class="container">
+    <main>
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <script src="js/main.js"></script>
+    <script src="/static/js/scripts.js"></script>
 </body>
 </html>

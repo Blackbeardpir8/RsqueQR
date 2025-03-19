@@ -3,9 +3,11 @@ from users import views
 from users.views import *
 
 urlpatterns = [
-
-    path("", index, name="index"),
+    path('', views.home_view, name='home'),
     path("create/", user_create_view, name="user_create"),
+    path("register/", register_view, name="register"),
+    path("login/", login_view, name="login"),
+    path("logout/", logout_view, name="logout"),
 
 
     path('users/', get_all_users, name='get-all-users'),  # GET all users
