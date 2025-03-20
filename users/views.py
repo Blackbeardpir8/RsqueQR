@@ -10,7 +10,7 @@ from users.models import User
 from users.serializers import UserSerializer
 from users.forms import UserRegistrationForm, UserLoginForm, UserProfileForm
 from users.models import UserProfile
-from .forms import UserRegistrationForm, UserProfileForm, UserForm
+from .forms import UserRegistrationForm, UserProfileForm
 
 
 
@@ -30,41 +30,40 @@ def index(request):
 
 
 @login_required
-def user_create_view(request):
-    """Render user form with logged-in user data (non-editable)."""
-    
-    # Pre-fill form with logged-in user data
-    initial_data = {
-        "first_name": request.user.first_name,
-        "last_name": request.user.last_name,
-        "email": request.user.email,
-        "phone_number": request.user.phone_number,
-    }
+def user_details_view(request):
+    """Render user details form with pre-filled non-editable fields."""
 
-    form = UserForm(initial=initial_data)  # Pass data to form (Read-Only)
-    
-    return render(request, "users/create_user.html", {"form": form})
-
-@login_required
-def profile(request):
-    """Display the user's profile details"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    return render(request, "users/profile.html", {"profile": user_profile})
-
-
-@login_required
-def update_profile(request):
+    # Fetch or create the user profile
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
         form = UserProfileForm(request.POST, request.FILES, instance=user_profile, user=request.user)
         if form.is_valid():
-            request.user.first_name = form.cleaned_data["first_name"]
-            request.user.last_name = form.cleaned_data["last_name"]
-            request.user.save()
             form.save()
-            return redirect("home")
+            return redirect("profile")  # Redirect to profile after updating
+    else:
+        form = UserProfileForm(instance=user_profile, user=request.user)
+
+    return render(request, "users/user_details.html", {"form": form})
+
+@login_required
+def profile(request):
+    """Display the user's profile details (View-Only)"""
+    user_profile = UserProfile.objects.get(user=request.user)
+    
+    return render(request, "users/view_profile.html", {"profile": user_profile})
+
+
+@login_required
+def update_profile(request):
+    """Allow users to update their profile (except first name, last name, email, phone)"""
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = UserProfileForm(request.POST, request.FILES, instance=user_profile, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect("view-profile")  # Redirect to View Profile after updating
     else:
         form = UserProfileForm(instance=user_profile, user=request.user)
 

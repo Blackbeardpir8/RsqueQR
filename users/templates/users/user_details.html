@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}User Details{% endblock %}
+
+{% block content %}
+    <h2>User Details</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Read-Only Fields -->
+        <label>First Name:</label>
+        {{ form.first_name }}
+        <br>
+        
+        <label>Last Name:</label>
+        {{ form.last_name }}
+        <br>
+        
+        <label>Email:</label>
+        {{ form.email }}
+        <br>
+
+        <label>Phone Number:</label>
+        {{ form.phone_number }}
+        <br>
+
+        <!-- Editable Fields -->
+        {{ form.as_p }}
+
+        <button type="submit">Update Profile</button>
+    </form>
+{% endblock %}

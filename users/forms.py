@@ -24,46 +24,45 @@ class UserLoginForm(AuthenticationForm):
 # User Profile Form
 # -----------------------------------
 class UserProfileForm(forms.ModelForm):
-    first_name = forms.CharField()
-    last_name = forms.CharField()
+    """Form for updating user profile details while keeping user fields read-only."""
+
+    first_name = forms.CharField(disabled=True, required=False)
+    last_name = forms.CharField(disabled=True, required=False)
+    email = forms.EmailField(disabled=True, required=False)
+    phone_number = forms.CharField(disabled=True, required=False)
 
     class Meta:
         model = UserProfile
         fields = [
-            'first_name','middle_name','last_name',
-            'age', 'address', 'gender', 'profile_picture',
-            'medical_conditions', 'allergies', 'insurance_documents',
-            'emergency_contact', 'emergency_relation', 'blood_type',
-            'primary_doctor_name', 'primary_doctor_contact'
+            "first_name", "last_name", "email", "phone_number",  # Read-only fields
+            "middle_name", "age", "address", "gender", "profile_picture",
+            "medical_conditions", "allergies", "insurance_documents",
+            "emergency_contact", "emergency_relation", "blood_type",
+            "primary_doctor_name", "primary_doctor_contact"
         ]
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        user = kwargs.pop("user", None)  # Get logged-in user
         super().__init__(*args, **kwargs)
+
         if user:
-            self.fields['first_name'].initial = user.first_name
-            self.fields['last_name'].initial = user.last_name
+            self.fields["first_name"].initial = user.first_name
+            self.fields["last_name"].initial = user.last_name
+            self.fields["email"].initial = user.email
+            self.fields["phone_number"].initial = user.phone_number
 
     def save(self, commit=True):
+        """Save profile data without modifying read-only fields."""
         profile = super().save(commit=False)
+
+        # Ensure user fields are not modified
         user = profile.user
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
+        user.first_name = self.cleaned_data.get("first_name", user.first_name)
+        user.last_name = self.cleaned_data.get("last_name", user.last_name)
+        user.email = self.cleaned_data.get("email", user.email)
+        user.phone_number = self.cleaned_data.get("phone_number", user.phone_number)
+
         if commit:
             user.save()
             profile.save()
         return profile
-
-
-# -----------------------------------
-# User Form
-# -----------------------------------
-class UserForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'phone_number']
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget.attrs['readonly'] = True 
