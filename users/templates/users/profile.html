@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>User Profile</h2>
+<p><strong>First Name:</strong> {{ user.first_name }}</p>
+<p><strong>Last Name:</strong> {{ user.last_name }}</p>
+<p><strong>Email:</strong> {{ user.email }}</p>
+<p><strong>Phone:</strong> {{ user.phone_number }}</p>
+
+<h3>Profile Details</h3>
+<p><strong>Middle Name:</strong> {{ profile.middle_name }}</p>
+<p><strong>Age:</strong> {{ profile.age }}</p>
+<p><strong>Address:</strong> {{ profile.address }}</p>
+<p><strong>Gender:</strong> {{ profile.gender }}</p>
+<p><strong>Blood Type:</strong> {{ profile.blood_type }}</p>
+<p><strong>Primary Doctor:</strong> {{ profile.primary_doctor_name }}</p>
+<p><strong>Doctor Contact:</strong> {{ profile.primary_doctor_contact }}</p>
+<p><strong>Emergency Contact:</strong> {{ profile.emergency_contact.user.email }}</p>
+<p><strong>Emergency Relation:</strong> {{ profile.emergency_relation }}</p>
+
+{% if profile.profile_picture %}
+    <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" width="150">
+{% endif %}
+
+{% endblock %}

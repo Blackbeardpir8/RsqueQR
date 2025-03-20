@@ -1,19 +1,44 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
-class User(AbstractUser):  
+class UserManager(BaseUserManager):
+    def create_user(self, email, first_name, last_name, phone_number, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, first_name=first_name, last_name=last_name, phone_number=phone_number, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, first_name, last_name, phone_number, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        return self.create_user(email, first_name, last_name, phone_number, password, **extra_fields)
+
+class User(AbstractUser):
+    username = None  # Remove default username field
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=15, unique=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'  # Login with email
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.email}"
+
+
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class UserProfile(models.Model):
     GENDER_CHOICES = [
         ('Male', 'Male'),
         ('Female', 'Female'),
-        ('Other', 'Other'),
-    ]
-
-    RELATIONSHIP_CHOICES = [
-        ('Parent', 'Parent'),
-        ('Sibling', 'Sibling'),
-        ('Spouse', 'Spouse'),
-        ('Child', 'Child'),
-        ('Friend', 'Friend'),
         ('Other', 'Other'),
     ]
 
@@ -28,26 +53,34 @@ class User(AbstractUser):
         ('AB-', 'AB-'),
     ]
 
-    # Basic User Details
-    first_name = models.CharField(max_length=100)
+    RELATION_CHOICES = [
+        ('Mother', 'Mother'),
+        ('Father', 'Father'),
+        ('Brother', 'Brother'),
+        ('Sister', 'Sister'),
+        ('Spouse', 'Spouse'),
+        ('Friend', 'Friend'),
+        ('Son', 'Son'),
+        ('Daughter', 'Daughter'),
+        ('Relative', 'Relative'),
+        ('Other', 'Other'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+
+    # Additional Details
     middle_name = models.CharField(max_length=100, blank=True, null=True)
-    last_name = models.CharField(max_length=100)
     age = models.PositiveIntegerField(null=True, blank=True)
     address = models.TextField(blank=True, null=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
-
-    # Contact Information
-    phone_number = models.CharField(max_length=15, unique=True)
-    alternate_phone = models.CharField(max_length=15, blank=True, null=True)
-    email = models.EmailField(unique=True)
 
     # Medical Information
     medical_conditions = models.TextField(blank=True, null=True)
     allergies = models.TextField(blank=True, null=True)
     insurance_documents = models.FileField(upload_to='insurance_docs/', blank=True, null=True)
 
-    # Emergency Contact (Relation to Another User)
+    # Emergency Contact
     emergency_contact = models.ForeignKey(
         'self',  
         on_delete=models.SET_NULL,
@@ -55,27 +88,14 @@ class User(AbstractUser):
         blank=True,
         related_name="emergency_for"
     )
-    emergency_relation = models.CharField(max_length=10, choices=RELATIONSHIP_CHOICES, blank=True, null=True)
+    emergency_contact_phone = models.CharField(max_length=15, blank=True, null=True)
+    emergency_relation = models.CharField(max_length=10, choices=RELATION_CHOICES, blank=True, null=True)
 
     # Extra Fields
     blood_type = models.CharField(max_length=5, choices=BLOOD_TYPE_CHOICES, blank=True, null=True)
     primary_doctor_name = models.CharField(max_length=100, blank=True, null=True)
     primary_doctor_contact = models.CharField(max_length=15, blank=True, null=True)
 
-    # Fix group & permissions conflict
-    groups = models.ManyToManyField(
-        "auth.Group",
-        related_name="custom_user_groups",
-        blank=True,
-    )
-    user_permissions = models.ManyToManyField(
-        "auth.Permission",
-        related_name="custom_user_permissions",
-        blank=True,
-    )
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
-
     def __str__(self):
-        return f"{self.first_name} {self.middle_name or ''} {self.last_name} - {self.phone_number}"
+        return f"Profile of {self.user.first_name} {self.user.last_name}"
+
