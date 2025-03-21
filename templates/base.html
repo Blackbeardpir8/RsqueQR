@@ -1,33 +1,106 @@
-{% load static %}  
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}RescueQR{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>{% block title %}RescueQR - Emergency QR Code Service{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <header>
-        <nav>
-            <ul>
-                <li><a href="{% url 'home' %}">Home</a></li>
-                <li><a href="{% url 'register' %}">Register</a></li>
-                <li><a href="{% url 'login' %}">Login</a></li>
-                <li><a href="{% url 'logout' %}">Logout</a></li>
-                <li><a href="{% url 'view-profile' %}">View Profile</a></li>
-                <li><a href="{% url 'update-profile' %}">Update Profile</a></li>
-                <li><a href="{% url 'get-all-users' %}">All Users</a></li>
-                
-            </ul>
-        </nav>
+        <div class="container">
+            <div class="logo">
+                <h1>Rescue<span>QR</span></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                        <li><a href="{% url 'view-profile' %}">View Profile</a></li>
+                        <li><a href="{% url 'update-profile' %}">Update Profile</a></li>
+                        <li><a href="{% url 'get-all-users' %}">All Users</a></li>
+                        {% if user.role == "Admin" %}
+                            <li><a href="{% url 'user-list-create' %}">Manage Users</a></li>
+                        {% elif user.role == "Doctor" %}
+                            <li><a href="{% url 'user-detail' pk=user.id %}">Patient Records</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'user-profile' %}">My Profile</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
     </header>
 
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <script src="{% static 'js/scripts.js' %}"></script>
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-logo">
+                    <h2>Rescue<span>QR</span></h2>
+                    <p>Emergency information when it matters most</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Our Team</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">News</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="link-group">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="#">FAQ</a></li>
+                            <li><a href="#">Contact Us</a></li>
+                            <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                            <li><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-contact">
+                    <h3>Contact Us</h3>
+                    <p>Email: support@rescueqr.com</p>
+                    <p>Phone: (800) 555-7890</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">FB</a>
+                        <a href="#" class="social-link">TW</a>
+                        <a href="#" class="social-link">IG</a>
+                        <a href="#" class="social-link">YT</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 RescueQR. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.menu-toggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.querySelector('nav').classList.toggle('active');
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

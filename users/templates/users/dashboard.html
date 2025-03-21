@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="dashboard-container">
+    <h2 class="dashboard-title">
+        {% if role == "User" %} 👤 User Dashboard
+        {% elif role == "Doctor" %} ⚕️ Doctor Dashboard
+        {% elif role == "Admin" %} 🛠️ Admin Dashboard
+        {% else %} 🏠 Dashboard {% endif %}
+    </h2>
+
+    <p class="welcome-message">Welcome, <strong>{{ user.first_name }} {{ user.last_name }}</strong>!</p>
+
+    <ul class="dashboard-menu">
+        {% if role == "User" %}
+            <li><a href="#">🩺 View Medical Profile</a></li>
+            <li><a href="#">📞 Update Emergency Contact</a></li>
+            <li><a href="#">📝 Upload Medical Reports</a></li>
+
+        {% elif role == "Doctor" %}
+            <li><a href="#">📁 View Patient Records</a></li>
+            <li><a href="#">📅 Manage Appointments</a></li>
+            <li><a href="#">📋 Review Medical Reports</a></li>
+
+        {% elif role == "Admin" %}
+            <li><a href="{% url 'admin:index' %}">🔧 Admin Panel</a></li>
+            <li><a href="#">👥 Manage Users</a></li>
+            <li><a href="#">📊 System Reports</a></li>
+            <li><a href="#">⚙️ System Settings</a></li>
+        {% endif %}
+    </ul>
+
+    <a href="{% url 'logout' %}" class="logout-button">Logout</a>
+</div>
+
+{% endblock %}

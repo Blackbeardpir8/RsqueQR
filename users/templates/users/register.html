@@ -6,7 +6,17 @@
     <h1>Register</h1>
     <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
+        <input type="text" name="first_name" placeholder="First Name" required>
+        <input type="text" name="last_name" placeholder="Last Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="text" name="phone_number" placeholder="Phone Number" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <select name="role" required>
+            <option value="User">User</option>
+            <option value="Doctor">Doctor</option>
+            <option value="Admin">Admin</option>
+        </select>
         <button type="submit">Register</button>
     </form>
+    
 {% endblock %}

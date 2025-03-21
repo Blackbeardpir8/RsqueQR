@@ -1,39 +1,22 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import User, UserProfile
 
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'phone_number', 'email', 'is_staff', 'is_superuser')
-    search_fields = ('first_name', 'last_name', 'phone_number', 'email')
-    ordering = ('phone_number',)
-    list_filter = ('is_staff', 'is_superuser', 'date_joined')
-
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = (
-        'user', 'middle_name', 'age', 'gender', 'blood_type', 
-        'primary_doctor_name', 'primary_doctor_contact', 
-        'emergency_contact', 'emergency_contact_phone', 'emergency_relation'
-    )
-    search_fields = (
-        'user__first_name', 'user__last_name', 'user__email', 
-        'primary_doctor_name', 'primary_doctor_contact', 
-        'emergency_contact__user__first_name', 'emergency_contact__user__last_name', 
-        'emergency_contact_phone'
-    )
-    list_filter = ('gender', 'blood_type', 'emergency_relation')
-
+# ✅ Custom UserAdmin (Keep Only This)
+class CustomUserAdmin(UserAdmin):
+    list_display = ('email', 'first_name', 'last_name', 'phone_number', 'role', 'is_staff')
+    search_fields = ('email', 'first_name', 'last_name', 'phone_number')
+    ordering = ('email',)
     fieldsets = (
-        ("User Info", {
-            "fields": ("user", "middle_name", "age", "gender", "address", "profile_picture")
-        }),
-        ("Medical Information", {
-            "fields": ("medical_conditions", "allergies", "insurance_documents")
-        }),
-        ("Emergency Contact", {
-            "fields": ("emergency_contact", "emergency_contact_phone", "emergency_relation")
-        }),
-        ("Doctor Info", {
-            "fields": ("primary_doctor_name", "primary_doctor_contact")
+        (None, {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name', 'phone_number', 'role')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'first_name', 'last_name', 'phone_number', 'role', 'password1', 'password2'),
         }),
     )
+
+admin.site.register(User, CustomUserAdmin)  # ✅ Keep Only This

@@ -1,8 +1,170 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RescueQR - Emergency QR Code Service</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Rescue<span>QR</span></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                        <li><a href="{% url 'view-profile' %}">View Profile</a></li>
+                        <li><a href="{% url 'update-profile' %}">Update Profile</a></li>
+                        <li><a href="{% url 'get-all-users' %}">All Users</a></li>
+                
+                        {% if user.role == "Admin" %}
+                            <li><a href="{% url 'user-list-create' %}">Manage Users</a></li>
+                        {% elif user.role == "Doctor" %}
+                            <li><a href="{% url 'user-detail' pk=user.id %}">Patient Records</a></li>
+                        {% endif %}
+                
+                        <li><a href="{% url 'user-profile' %}">My Profile</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
 
-{% block title %}Home{% endblock %}
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Your Safety, One Scan Away</h1>
+                <p>RescueQR provides emergency responders with instant access to your critical medical information when seconds count.</p>
+                <div class="hero-buttons">
+                    <a href="" class="btn primary">Get Your QR Code</a>
+                    <a href="{% url 'how_it_works' %}" class="btn secondary">How It Works</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="{% static 'images/qr-code-example.png' %}" alt="RescueQR Code Example">
+            </div>
+        </div>
+    </section>
 
-{% block content %}
-    <h1>Welcome to RescueQR</h1>
-    <p>Manage emergency contacts and medical records easily.</p>
-{% endblock %}
+    <section class="benefits">
+        <div class="container">
+            <h2>Why Choose RescueQR</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <img src="{% static 'images/speed-icon.png' %}" alt="Speed Icon">
+                    </div>
+                    <h3>Rapid Response</h3>
+                    <p>Provide critical information to first responders in seconds, not minutes.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <img src="{% static 'images/security-icon.png' %}" alt="Security Icon">
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your data is encrypted and only accessible to authorized personnel.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <img src="{% static 'images/customization-icon.png' %}" alt="Customization Icon">
+                    </div>
+                    <h3>Fully Customizable</h3>
+                    <p>Choose exactly what information to share in emergency situations.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <img src="{% static 'images/update-icon.png' %}" alt="Update Icon">
+                    </div>
+                    <h3>Easy Updates</h3>
+                    <p>Update your medical information anytime without replacing your QR code.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Protect Yourself and Your Loved Ones?</h2>
+            <p>Join thousands of people who trust RescueQR for emergency preparedness.</p>
+            <a href="{% url 'register' %}" class="btn primary large">Get Started Today</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-logo">
+                    <h2>Rescue<span>QR</span></h2>
+                    <p>Emergency information when it matters most</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="">About Us</a></li>
+                            <li><a href="#">Our Team</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">News</a></li>
+                        </ul>
+                    </div>
+                    <div class="link-group">
+                        <h3>Products</h3>
+                        <ul>
+                            <li><a href="#">QR Cards</a></li>
+                            <li><a href="#">QR Keychains</a></li>
+                            <li><a href="#">QR Bracelets</a></li>
+                            <li><a href="#">Custom Solutions</a></li>
+                        </ul>
+                    </div>
+                    <div class="link-group">
+                        <h3>Support</h3>
+                        <ul>
+                            <li><a href="#">FAQ</a></li>
+                            <li><a href="#">Contact Us</a></li>
+                            <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                            <li><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-contact">
+                    <h3>Contact Us</h3>
+                    <p>Email: support@rescueqr.com</p>
+                    <p>Phone: (800) 555-7890</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">FB</a>
+                        <a href="#" class="social-link">TW</a>
+                        <a href="#" class="social-link">IG</a>
+                        <a href="#" class="social-link">YT</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 RescueQR. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.menu-toggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.querySelector('nav').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

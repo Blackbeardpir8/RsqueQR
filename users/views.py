@@ -5,12 +5,13 @@ from django.contrib import messages
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import HttpResponseForbidden
 
 from users.models import User
 from users.serializers import UserSerializer
 from users.forms import UserRegistrationForm, UserLoginForm, UserProfileForm
 from users.models import UserProfile
-from .forms import UserRegistrationForm, UserProfileForm
+from users.forms import UserRegistrationForm, UserProfileForm
 
 
 
@@ -27,6 +28,15 @@ def index(request):
     """List all users on the index page."""
     users = User.objects.all()
     return render(request, "users/index.html", {"users": users})
+
+def how_it_works_view(request):
+    return render(request, "users/how_it_works.html")
+
+def terms_of_service(request):
+    return render(request, "users/terms_of_service.html")
+
+def privacy_policy(request):
+    return render(request, "users/privacy_policy.html")
 
 
 @login_required
@@ -56,12 +66,14 @@ def profile(request):
 
 @login_required
 def update_profile(request):
-    """Allow users to update their profile (except first name, last name, email, phone)"""
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
         form = UserProfileForm(request.POST, request.FILES, instance=user_profile, user=request.user)
         if form.is_valid():
+            if form.instance.user != request.user:
+                return HttpResponseForbidden("You are not allowed to edit this profile.")  # Prevent editing others' profiles
+            
             form.save()
             return redirect("view-profile")  # Redirect to View Profile after updating
     else:
@@ -69,6 +81,11 @@ def update_profile(request):
 
     return render(request, "users/update_profile.html", {"form": form})
 
+
+@login_required
+def dashboard(request):
+    role = request.user.role  # Assuming `role` is stored in the User model
+    return render(request, "users/dashboard.html", {"role": role})
 
 # -------------------------------------------------------------------
 #                           API Views
@@ -175,39 +192,47 @@ def delete_user(request, pk):
 #                       Authentication Views
 # -------------------------------------------------------------------
 
+
 def register(request):
-    """User registration view."""
     if request.method == "POST":
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            UserProfile.objects.create(user=user)  # Create an empty UserProfile
-            login(request, user)
-            return redirect("home")  # Redirect to home page
-    else:
-        form = UserRegistrationForm()
-    
-    return render(request, "users/register.html", {"form": form})
+        email = request.POST["email"]
+        password = request.POST["password"]
+        role = request.POST["role"]
+        first_name = request.POST["first_name"]
+        last_name = request.POST["last_name"]
+        phone_number = request.POST["phone_number"]
+
+        user = User.objects.create_user(
+            email=email, 
+            password=password, 
+            role=role, 
+            first_name=first_name, 
+            last_name=last_name, 
+            phone_number=phone_number
+        )
+        user.save()
+        login(request, user)
+
+        return redirect("dashboard")  # Redirect based on role
+
+    return render(request, "users/register.html")
+
+
 
 
 def login_view(request):
-    """User login view."""
     if request.method == "POST":
-        form = UserLoginForm(data=request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get("username")  # Email field
-            password = form.cleaned_data.get("password")
-            user = authenticate(request, username=email, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f"Welcome {user.first_name}!")
-                return redirect("home")
-            else:
-                messages.error(request, "Invalid email or password.")
-    else:
-        form = UserLoginForm()
+        email = request.POST["email"]
+        password = request.POST["password"]
+        user = authenticate(request, email=email, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return redirect("dashboard")  # Redirect to dashboard after login
+        else:
+            messages.error(request, "Invalid email or password.")
 
-    return render(request, "users/login.html", {"form": form})
+    return render(request, "users/login.html")
 
 
 def logout_view(request):
@@ -216,3 +241,78 @@ def logout_view(request):
     messages.success(request, "You have been logged out.")
     return redirect("login")
 
+
+
+
+from rest_framework import generics, permissions
+from .models import User, UserProfile
+from .serializers import UserSerializer, UserProfileSerializer
+# List & Create Users
+class UserListCreateView(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+# Retrieve, Update & Delete User
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+# User Profile Detail & Update
+class UserProfileDetailView(generics.RetrieveUpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.profile  
+    
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from users.permissions import IsAdmin, IsDoctor, IsUser
+
+class AdminOnlyView(APIView):
+    """Only Admins can access this view"""
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+        return Response({"message": "Welcome, Admin!"})
+
+
+class DoctorOnlyView(APIView):
+    """Only Doctors can access this view"""
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    def get(self, request):
+        return Response({"message": "Welcome, Doctor!"})
+
+
+class UserOnlyView(APIView):
+    """Only Regular Users can access this view"""
+    permission_classes = [IsAuthenticated, IsUser]
+
+    def get(self, request):
+        return Response({"message": "Welcome, User!"})
+
+from django.contrib.auth.decorators import login_required
+from .decorators import role_required
+
+@login_required
+@role_required(["Admin"])  # Only Admins can access this
+def admin_dashboard(request):
+    return render(request, "users/admin_dashboard.html")
+
+@login_required
+@role_required(["Doctor"])  # Only Doctors can access this
+def doctor_dashboard(request):
+    return render(request, "users/doctor_dashboard.html")
+
+@login_required
+@role_required(["User"])  # Only Users can access this
+def user_dashboard(request):
+    return render(request, "users/user_dashboard.html")

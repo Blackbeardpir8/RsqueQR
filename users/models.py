@@ -16,7 +16,24 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         return self.create_user(email, first_name, last_name, phone_number, password, **extra_fields)
 
+
 class User(AbstractUser):
+    ROLE_CHOICES = (
+        ('User', 'User'),
+        ('Doctor', 'Doctor'),
+        ('Admin', 'Admin'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='User')
+
+    def is_admin(self):
+        return self.role == "Admin"
+
+    def is_doctor(self):
+        return self.role == "Doctor"
+
+    def is_user(self):
+        return self.role == "User"
+    
     username = None  # Remove default username field
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, unique=True)
